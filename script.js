@@ -1,105 +1,98 @@
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
-      // Mobile menu toggle with ARIA state and Esc to close
-      const menuButton = document.querySelector(".mobile-menu");
-      const nav = document.getElementById("primary-nav");
-      if (menuButton && nav) {
-        function setOpen(open) {
-          nav.classList.toggle("active", open);
-          menuButton.setAttribute("aria-expanded", String(open));
-        }
-        let isOpen = false;
-        menuButton.addEventListener("click", () => {
-          isOpen = !isOpen;
-          setOpen(isOpen);
-        });
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && isOpen) {
-            isOpen = false;
-            setOpen(false);
-            menuButton.focus();
-          }
-        });
-        nav.querySelectorAll("a").forEach((a) =>
-          a.addEventListener("click", () => {
-            isOpen = false;
-            setOpen(false);
-          })
-        );
-      }
-
-      // Smooth scrolling for anchor links with native behavior fallback
-      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      // Smooth scrolling for navigation links
+      document.querySelectorAll("nav a").forEach((anchor) => {
         anchor.addEventListener("click", function (e) {
-          const id = this.getAttribute("href");
-          if (id.length > 1) {
-            const target = document.querySelector(id);
-            if (target) {
-              e.preventDefault();
-              target.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }
-          // move active underline to clicked nav item
-          if (this.closest("nav")) {
-            document
-              .querySelectorAll("nav a")
-              .forEach((a) => a.classList.remove("is-active"));
-            this.classList.add("is-active");
+          e.preventDefault();
+
+          const targetId = this.getAttribute("href");
+          if (targetId === "#") return;
+
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 20,
+              behavior: "smooth",
+            });
           }
         });
       });
 
-      // jQuery client-side form validation
-      $(function () {
-        const $form = $("#contact form, .contact form").first();
-        function showError($field, msg) {
-          $field.addClass("error");
-          $field.attr("aria-invalid", "true");
-          let $msg = $('<div class="error-text" role="alert"></div>').text(msg);
-          // remove existing then append
-          $field.next(".error-text").remove();
-          $field.after($msg);
-        }
-        function clearError($field) {
-          $field.removeClass("error");
-          $field.removeAttr("aria-invalid");
-          $field.next(".error-text").remove();
-        }
-        $form.on("submit", function (e) {
-          let ok = true;
-          const $name = $("#name");
-          const $email = $("#email");
-          const $subject = $("#subject");
-          const $message = $("#message");
-          const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-          clearError($name);
-          clearError($email);
-          clearError($subject);
-          clearError($message);
-          if (!$name.val().trim()) {
-            ok = false;
-            showError($name, "Please enter your name.");
-          }
-          if (!$email.val().trim() || !emailRx.test($email.val().trim())) {
-            ok = false;
-            showError($email, "Enter a valid email address.");
-          }
-          if (!$subject.val().trim()) {
-            ok = false;
-            showError($subject, "Please enter a subject.");
-          }
-          if (!$message.val().trim() || $message.val().trim().length < 10) {
-            ok = false;
-            showError($message, "Message must be at least 10 characters.");
-          }
-          if (!ok) {
-            e.preventDefault();
+      // Highlight active nav link based on scroll position
+      window.addEventListener("scroll", function () {
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll("nav a");
+
+        let currentSection = "";
+
+        sections.forEach((section) => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.clientHeight;
+          if (pageYOffset >= sectionTop - 100) {
+            currentSection = section.getAttribute("id");
           }
         });
-        $form.find(".form-control").on("input blur", function () {
-          const $f = $(this);
-          if ($f.val().trim().length) {
-            clearError($f);
+
+        navLinks.forEach((link) => {
+          link.classList.remove("active");
+          if (link.getAttribute("href") === `#${currentSection}`) {
+            link.classList.add("active");
           }
+        });
+      });
+
+      // Expandable sections
+      document.querySelectorAll(".item-title").forEach((title) => {
+        title.addEventListener("click", function () {
+          const content = this.nextElementSibling;
+          this.classList.toggle("active");
+          content.classList.toggle("expanded");
+        });
+      });
+
+      // Animate sections on scroll
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
+
+      const observer = new IntersectionObserver(function (entries) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll(".section").forEach((section) => {
+        observer.observe(section);
+      });
+
+      // Theme toggle functionality
+      const themeToggle = document.querySelector(".theme-toggle");
+      themeToggle.addEventListener("click", function () {
+        document.body.classList.toggle("dark-mode");
+        const icon = this.querySelector("i");
+        if (document.body.classList.contains("dark-mode")) {
+          icon.classList.remove("fa-moon");
+          icon.classList.add("fa-sun");
+        } else {
+          icon.classList.remove("fa-sun");
+          icon.classList.add("fa-moon");
+        }
+      });
+
+      // Profile image animation
+      const profileImg = document.querySelector(".profile-img");
+      profileImg.addEventListener("click", function () {
+        this.classList.toggle("animated");
+      });
+
+      // Skill hover effects
+      document.querySelectorAll(".skill").forEach((skill) => {
+        skill.addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-5px) scale(1.05)";
+        });
+
+        skill.addEventListener("mouseleave", function () {
+          this.style.transform = "translateY(0) scale(1)";
         });
       });
